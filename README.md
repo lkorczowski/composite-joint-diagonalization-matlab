@@ -54,7 +54,7 @@ b_i ← b_i + β b_j        d_i ← d_i + γ d_j
 ## Quick start
 
 ```matlab
-cd CAJD
+cd composite-joint-diagonalization-matlab
 script_CAJD_tuto      % simulate data, run AJD/BAJD/CAJD, plot convergence
 ```
 
@@ -63,7 +63,7 @@ The script adds `lib/` to the path and simulates bilinear data. It then runs all
 - `MoMaA.png`: Moreau-Macchi index on `B`
 - `MoMaE.png`: Moreau-Macchi index on `D`
 
-> ⚠️ On macOS/Linux, change `outputDIR = '.\figures\'` to `outputDIR = fullfile('.', 'figures', filesep)` first. See [Known issues](#known-issues).
+> ⚠️ On macOS/Linux, first change `outputDIR = '.\figures\'` to `outputDIR = fullfile('.', 'figures', filesep)` and, on line 181, `[outputDIR '\MoMaE']` to `[outputDIR 'MoMaE']`. See [Known issues](#known-issues).
 
 **What you should see.** Because the simulated `E` is far from orthogonal, AJD stalls far from the true solution. BAJD and CAJD both converge. With noise, CAJD reaches a lower error on `B` than BAJD. The paper's version, averaged over 100 runs:
 
@@ -88,6 +88,8 @@ Ahat = inv(B);     % spatial patterns  (columns = scalp maps)
 Ehat = pinv(D);    % temporal patterns (rows    = time courses)
 % back-projection of source i for trial k:  Ahat(:,i) * S(i,i,k) * Ehat(i,:)
 ```
+
+> ⚠️ Without the true `A`/`E` (always the case on real data), `gp_CAJD_GPT` currently errors in `gp_critMoAm`. Patch `lib/gp_critMoAm.m` first: on the line `%     return;` (inside `if any([isempty(A) isempty(B)])`), remove the `%` so the function returns `NaN`. See [Known issues](#known-issues).
 
 ---
 
@@ -134,27 +136,27 @@ Ehat = pinv(D);    % temporal patterns (rows    = time courses)
 
 ## Differences between the code and the paper
 
-- **Weighting α.** The paper defines `f_c = α f + (1−α) f_b` and uses α = 0.5. `gp_CAJD_GPT` has no α parameter. It simply adds the bilinear and the linear sums with equal weight when computing β. Since the paper's closed form carries an extra factor 2 on the linear term, this is not exactly α = 0.5, so the balance between the two terms is set by the relative scale of `X` and `C`.
-- **Tutorial vs. paper simulation.** The tutorial runs **one** small simulation: N = 8, K = 100, F = 20, orthogonal `A`, cond(`E`) in [50, 100], SNR ∈ {∞, 20}. The paper's Fig. 2 and Table I average 100 draws with N = 16 and non-orthogonal `A` and `E`. To get closer, raise `nTest`, `N` and `condA`.
+- **Weighting α.** The paper defines `f_c = α f + (1−α) f_b` and uses α = 0.5. `gp_CAJD_GPT` has no α parameter. It simply adds the bilinear and the linear sums with equal weight when computing β. The paper's closed form weighs the bilinear sums by (1−α) and the linear sums by 2α, so equal weights correspond to α = 1/3, not 0.5. In practice the balance is also set by the relative scale of `X` and `C`.
+- **Tutorial vs. paper simulation.** The tutorial runs **one** small simulation: N = 8, K = 100, F = 20, orthogonal `A`, cond(`E`) in [50, 100], SNR ∈ {∞, 20}. The paper's Fig. 2 and Table I average 100 draws with N = 16 and non-orthogonal `A` and `E`. The paper also used cond(`E`) in [1, 20), L = 100 symmetric matrices, and initialized `B` with the identity and `D` with a random orthogonal matrix (not the SVD). [TUTORIAL.md](TUTORIAL.md) lists the exact settings.
 - **No EEG data.** The P300 dataset (Brain Invaders) behind Figs. 3–4 is not included. A similar public dataset, bi2015a, is available through [MOABB](https://moabb.neurotechx.com/docs/generated/moabb.datasets.BI2015a.html), and [TUTORIAL.md](TUTORIAL.md#part-2--applying-cajd-to-eeg-paper-section-iii-b-p300-data) describes the paper's EEG pipeline. The images in `pic/` are the paper's figures:
   - `composite_model.png`: Fig. 1, the composite model.
   - `simulation_convergence.png`: Fig. 2, simulation results.
   - `EEG_independent_sources.png`: Fig. 3, the 16 CAJD sources.
-  - `evoked_sources_comparison.png`: back-projected P3b for CAJD, BAJD and AJD at AFz, Cz and Pz.
+  - `evoked_sources_comparison.png`: an extended version of the paper's Fig. 4 (not in the paper). It adds an AJD column to Fig. 4's raw data, CAJD and BAJD, showing back-projected sources 6 (CAJD), 11 (BAJD) and 5 (AJD) at AFz, Cz and Pz.
 
 ![Sources estimated by CAJD on EEG: temporal patterns (left) and scalp maps (right). c06 is the P3b, c11 the early visual complex.](pic/EEG_independent_sources.png)
 
-![Back-projected P3b source at AFz, Cz and Pz: raw data vs. CAJD, BAJD and AJD.](pic/evoked_sources_comparison.png)
+![Extended version of paper Fig. 4: back-projected P3b source at AFz, Cz and Pz for raw data, CAJD, BAJD and AJD.](pic/evoked_sources_comparison.png)
 
 ## Known issues
 
 These come from reading the code. They have not been re-run.
 
-- **Windows-only output path:** `script_CAJD_tuto.m` uses `'.\figures\'`, which breaks on macOS/Linux.
+- **Windows-only output paths:** `script_CAJD_tuto.m` uses `'.\figures\'` and `[outputDIR '\MoMaE']` (line 181), which break on macOS/Linux.
 - **`A`/`E` are not actually optional:** `gp_critMoAm` errors when `A` or `B` is empty because `N` is never set. The `return` on that branch is commented out. Until that is fixed, pass the true `A`/`E`, or patch `gp_critMoAm` to `return` when either input is empty.
 - **`gp_CAJD_GPT(X, C)` without `options`:** this fails because the default-options check tests `nargin<2` instead of `nargin<3`. Always pass an `options` struct, even an empty `struct()`.
 - **`info(1)` off-diagonality:** in `gp_AJD_GPT` and `gp_CAJD_GPT`, `info(1).critOFF*` is computed on the raw `C` rather than on `B0ᵀ C B0`.
-- **Field names in BAJD:** `gp_BAJD_GPT` stores the initial off-diagonality as `critOFFS` but later sweeps as `critOFF`.
+- **Field names in BAJD:** `gp_BAJD_GPT` stores the initial off-diagonality as `critOFFS` but later sweeps as `critOFF`. (In AJD the field is `critOFF`; in CAJD, `critOFFS` and `critOFFC`.)
 
 ## Authors and license
 

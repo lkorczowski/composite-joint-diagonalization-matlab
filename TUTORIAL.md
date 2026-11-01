@@ -42,9 +42,9 @@ allCondE = {[50 100]};  % condition number range of E: strongly non-orthogonal
 allSNR   = {inf, 20};   % noiseless, then noisy
 ```
 
-The default parameters run in a few seconds. To get closer to the paper, set `nTest = 100`, `N = 16`, `F = 100` and `condA = [1 20]`.
+The default parameters run in a few seconds. To match the paper's simulation, set `nTest = 100`, `N = 16`, `F = 100` (the paper's L), `condA = [1 20]`, `allCondE = {[1 20]}`, and initialize with `B0 = eye(N)` and `D0 = orth(randn(T,N))` instead of the SVD. The paper's noise level was σ = 0.1; the script's `SNR = 20` gives σ ≈ 0.22.
 
-> On macOS/Linux, first replace `outputDIR = '.\figures\'` with `outputDIR = fullfile('.', 'figures', filesep);`.
+> On macOS/Linux, first change `outputDIR = '.\figures\'` to `outputDIR = fullfile('.', 'figures', filesep)` and, on line 181, `[outputDIR '\MoMaE']` to `[outputDIR 'MoMaE']`.
 
 ### Step 2: simulate data, `simBAJD_dat`
 
@@ -102,7 +102,7 @@ At every sweep, `info(it).critA = gp_critMoAm(A, B)` measures how far `BᵀA` is
 I_MM(H) = 1/(2N(N−1)) · [ Σ_i ( Σ_j |H_ij| / max_j |H_ij| − 1 ) + Σ_j ( Σ_i |H_ij| / max_i |H_ij| − 1 ) ],   H = BᵀA
 ```
 
-The index is **0 for perfect separation** and close to 1 for random `B`. `info(it).critE` gives the same index for the temporal side, with `H = DᵀE`.
+The index is **0 for perfect separation** and at most 1. `info(it).critE` gives the same index for the temporal side, with `H = DᵀE`.
 
 ### Step 7: what you should get
 
@@ -110,13 +110,13 @@ The script saves `figures/CAJD_sim.mat`, `figures/MoMaA.png` (the index on `B`) 
 
 ![Convergence of the Moreau-Macchi index on B for AJD, CAJD and BAJD](pic/simulation_convergence.png)
 
-*Paper Fig. 2: Moreau-Macchi index on `B` vs. number of sweeps. (a) No noise. (b) Noise σ = 0.1. The y-axis shows `log10` of the index (the script plots `log10`, although the label says dB).*
+*Paper Fig. 2: Moreau-Macchi index on `B` vs. number of sweeps. (a) No noise. (b) Noise σ = 0.1. The paper's axis is labelled in dB; the tutorial script plots `log10` of the index.*
 
 How to read it:
 
 1. **AJD stalls (a).** When `E` is far from orthogonal, `X_k X_kᵀ = A S_k EᵀE S_k Aᵀ` is no longer diagonalizable by `A`. Turning trials into covariances throws away the bilinear structure, and AJD converges to a wrong `B`.
 2. **BAJD and CAJD both reach the true solution without noise (a).** They stay close all the way, and the bilinear model is exact here.
-3. **With noise, CAJD separates best (b).** It reaches about 10⁻¹⁴·⁵ against about 10⁻¹¹ for BAJD and about 10⁻¹¹·⁵ for AJD. The symmetric matrices `C_f` add *diversity* that makes the estimate of `B` more robust. For `D` (the `MoMaE` figure), CAJD and BAJD perform about the same, since only the bilinear part constrains `D`.
+3. **With noise, CAJD separates best (b).** Paper Table I (σ = 0.1, 100 draws) gives these medians on `B`: CAJD 1.06e−2, BAJD 3.12e−1, AJD 3.26e−1. The symmetric matrices `C_f` add *diversity* that makes the estimate of `B` more robust. For `D` (the `MoMaE` figure), CAJD and BAJD perform about the same, since only the bilinear part constrains `D`.
 
 ---
 
@@ -128,7 +128,7 @@ The paper used two-player Brain Invaders P300 recordings (32 electrodes, 512 Hz)
 2. **Bilinear set `X`: bootstrapped ensemble averages.** Draw 40 averages of 50 TARGET epochs and 10 averages of 50 NON-TARGET epochs. Averaging boosts the evoked part relative to the ongoing EEG, so these 50 matrices follow the bilinear model much better than single trials do.
 3. **Linear set `C`: co-spectra.** Compute Bartlett-averaged co-spectral matrices over all epochs for f = 1, 1.5, …, 20 Hz, which gives 39 matrices.
 4. **Initialize.** Use the SVD of the average evoked response, as in Step 4. The paper used the regression-based average of Congedo et al. 2016.
-5. **Run CAJD**: `[B, D, S, C] = gp_CAJD_GPT(Xbar, Cf, opt)`.
+5. **Run CAJD**: `[B, D, S, C] = gp_CAJD_GPT(Xbar, Cf, opt)`. On real data there is no true `A`/`E`, so first apply the one-character patch to `gp_critMoAm` described in the README's *Known issues*.
 6. **Interpret.**
    - `Â = inv(B)`: each column is the scalp map of one source.
    - `Ê = pinv(D)`: each row is the time course of one source.
@@ -140,7 +140,7 @@ The paper used two-player Brain Invaders P300 recordings (32 electrodes, 512 Hz)
 
 ![Single-trial back-projection of the P3b source](pic/evoked_sources_comparison.png)
 
-*Back-projected P3b at AFz, Cz and Pz: raw trials vs. CAJD, BAJD and AJD. Grey band: 10–90 % quantiles across trials. CAJD recovers the P3b with the correct shape and less trial-to-trial variability, especially before 250 ms and after 700 ms.*
+*Extended version of the paper's Fig. 4 (this 4-column image, with AJD added, is not in the paper): back-projected P3b at AFz, Cz and Pz for raw trials, CAJD, BAJD and AJD. In the paper's Fig. 4 (raw data, CAJD, BAJD; grey band = 10–90 % quantiles across trials), both methods recover the P3b's sign and shape, and CAJD is more robust to outliers than BAJD, especially before 250 ms and after 700 ms.*
 
 A template for steps 2–3 (untested):
 

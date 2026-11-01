@@ -1,7 +1,35 @@
 function [X,C,A,E,info] = simBAJD_dat(options)
 
-% generate random data for bilinear AJD
-
+% [X,C,A,E,info] = simBAJD_dat(options)
+% Generate random data for (composite) bilinear AJD: trials following the
+% bilinear model and symmetric matrices following the linear model, both
+% sharing the same spatial mixing matrix A.
+%   X(:,:,k) = A*S_k*E' + noise     (S_k diagonal)
+%   C(:,:,f) = A*Cs_f*A' + noise    (Cs_f diagonal, positive)
+%
+% INPUTS
+% -----------------
+%   options* is a structure with
+%     .N is the number of sources/sensors. default: 8
+%     .T is the number of samples. default: 128
+%     .K is the number of matrices X. default: 20
+%     .F is the number of matrices C. default: 20
+%     .condA is 1 for an orthogonal A, or a range [min max] of condition
+%     number for a random A. default: 1
+%     .condE is 1 for an orthogonal E, or a range [min max] of condition
+%     number for a random E (needs mvnrnd, Statistics Toolbox). default: 1
+%     .SNR is the signal to noise ratio. default: inf (no noise)
+%
+% OUTPUTS
+% -----------------
+%   X : the observation matrices [N x T x K]
+%   C : the symmetric matrices [N x N x F]
+%   A : the true spatial mixing matrix [N x N]
+%   E : the true temporal mixing matrix [T x N]
+%   info : structure with the sources S, Cs, the noise No, Noc and options
+%
+% see also: convertDat_BAJD, gp_CAJD_GPT
+%
 % *** Author: Florent BOUCHARD, GIPSA-Lab, 2015
 % initialize parameters according to options input
 %%% default

@@ -1,6 +1,6 @@
 function [B,D,S,info,options] = gp_BAJD_GPT(X,options)
-% [B,D,S,info,options] = gp_CAJD_GPT(X,C,options)
-% Compute bilinear joint diagonalization of matrices X and C. 
+% [B,D,S,info,options] = gp_BAJD_GPT(X,options)
+% Compute bilinear joint diagonalization of matrices X. 
 %
 % INPUTS
 % -----------------

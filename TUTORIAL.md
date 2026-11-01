@@ -158,5 +158,5 @@ For the co-spectra `Cf`, take the FFT of each epoch (zero-padded to 2·fs points
 
 ## Going further
 
-- **Python port:** a from-scratch Python reimplementation with scikit-learn / MNE / MOABB compatible APIs is in preparation.
+- **Python port:** [`cajd`](https://github.com/lkorczowski/composite-joint-diagonalization) is a from-scratch Python reimplementation with scikit-learn / MNE / MOABB / pyRiemann compatible estimators, tests, and a reproduction of the paper's simulation.
 - **Questions:** open an issue on this repository.

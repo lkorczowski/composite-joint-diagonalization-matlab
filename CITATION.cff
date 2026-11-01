@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Composite Approximate Joint Diagonalization (CAJD) for EEG/ERP source separation (MATLAB)"
+authors:
+  - family-names: Korczowski
+    given-names: Louis
+  - family-names: Bouchard
+    given-names: Florent
+license: GPL-3.0
+repository-code: "https://github.com/lkorczowski/composite-joint-diagonalization-matlab"
+keywords:
+  - EEG
+  - ERP
+  - event-related potentials
+  - P300
+  - brain-computer interface
+  - blind source separation
+  - approximate joint diagonalization
+  - tensor decomposition
+preferred-citation:
+  type: conference-paper
+  title: "Mining the Bilinear Structure of Data with Approximate Joint Diagonalization"
+  authors:
+    - family-names: Korczowski
+      given-names: Louis
+    - family-names: Bouchard
+      given-names: Florent
+    - family-names: Jutten
+      given-names: Christian
+    - family-names: Congedo
+      given-names: Marco
+  collection-title: "24th European Signal Processing Conference (EUSIPCO 2016)"
+  start: 667
+  end: 671
+  year: 2016
+  url: "https://hal.science/hal-01357245"

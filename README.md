@@ -8,7 +8,11 @@ This is the code behind:
 
 > L. Korczowski, F. Bouchard, C. Jutten, M. Congedo, **"Mining the Bilinear Structure of Data with Approximate Joint Diagonalization"**, *EUSIPCO 2016 – 24th European Signal Processing Conference*, Budapest, Aug. 2016, pp. 667–671. [hal-01357245](https://hal.science/hal-01357245v1) · [PDF](https://hal.science/hal-01357245/document)
 
-![Sources estimated by CAJD on EEG: temporal patterns (left) and scalp maps (right). c06 is the P3b, c11 the early visual complex.](pic/EEG_independent_sources.png)
+![Composite model: evoked (bilinear) and continuous (linear) sources mixed by the same spatial matrix A](pic/composite_model.png)
+
+📘 **New here? Start with the [step-by-step tutorial](TUTORIAL.md).** It explains every step of the simulation script and shows the expected figures, so you can follow it without MATLAB.
+
+**Keywords:** EEG · ERP · event-related potentials · P300 · brain-computer interface (BCI) · blind source separation (BSS) · approximate joint diagonalization (AJD) · bilinear / spatio-temporal model · tensor decomposition · single-trial ERP estimation · denoising
 
 ---
 
@@ -61,7 +65,11 @@ The script adds `lib/` to the path and simulates bilinear data. It then runs all
 
 > ⚠️ On macOS/Linux, change `outputDIR = '.\figures\'` to `outputDIR = fullfile('.', 'figures', filesep)` first. See [Known issues](#known-issues).
 
-**What you should see.** Because the simulated `E` is far from orthogonal, AJD stalls far from the true solution. BAJD and CAJD both converge. With noise (SNR = 20), CAJD reaches a lower error on `B` than BAJD.
+**What you should see.** Because the simulated `E` is far from orthogonal, AJD stalls far from the true solution. BAJD and CAJD both converge. With noise, CAJD reaches a lower error on `B` than BAJD. The paper's version, averaged over 100 runs:
+
+![Moreau-Macchi index on B vs. sweeps for AJD, CAJD, BAJD; (a) no noise, (b) noise](pic/simulation_convergence.png)
+
+The full walkthrough is in [TUTORIAL.md](TUTORIAL.md).
 
 ### Using it on your own data
 
@@ -128,9 +136,13 @@ Ehat = pinv(D);    % temporal patterns (rows    = time courses)
 
 - **Weighting α.** The paper defines `f_c = α f + (1−α) f_b` and uses α = 0.5. `gp_CAJD_GPT` has no α parameter. It simply adds the bilinear and the linear sums with equal weight when computing β. Since the paper's closed form carries an extra factor 2 on the linear term, this is not exactly α = 0.5, so the balance between the two terms is set by the relative scale of `X` and `C`.
 - **Tutorial vs. paper simulation.** The tutorial runs **one** small simulation: N = 8, K = 100, F = 20, orthogonal `A`, cond(`E`) in [50, 100], SNR ∈ {∞, 20}. The paper's Fig. 2 and Table I average 100 draws with N = 16 and non-orthogonal `A` and `E`. To get closer, raise `nTest`, `N` and `condA`.
-- **No EEG data.** The P300 dataset (Brain Invaders) behind Figs. 3–4 is not included. The images in `pic/` are the paper's figures:
-  - `EEG_independent_sources.png`: the 16 CAJD sources.
+- **No EEG data.** The P300 dataset (Brain Invaders) behind Figs. 3–4 is not included. A similar public dataset, bi2015a, is available through [MOABB](https://moabb.neurotechx.com/docs/generated/moabb.datasets.BI2015a.html), and [TUTORIAL.md](TUTORIAL.md#part-2--applying-cajd-to-eeg-paper-section-iii-b-p300-data) describes the paper's EEG pipeline. The images in `pic/` are the paper's figures:
+  - `composite_model.png`: Fig. 1, the composite model.
+  - `simulation_convergence.png`: Fig. 2, simulation results.
+  - `EEG_independent_sources.png`: Fig. 3, the 16 CAJD sources.
   - `evoked_sources_comparison.png`: back-projected P3b for CAJD, BAJD and AJD at AFz, Cz and Pz.
+
+![Sources estimated by CAJD on EEG: temporal patterns (left) and scalp maps (right). c06 is the P3b, c11 the early visual complex.](pic/EEG_independent_sources.png)
 
 ![Back-projected P3b source at AFz, Cz and Pz: raw data vs. CAJD, BAJD and AJD.](pic/evoked_sources_comparison.png)
 

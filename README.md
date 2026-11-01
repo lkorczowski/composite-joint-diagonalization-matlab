@@ -10,6 +10,8 @@ This is the code behind:
 
 ![Composite model: evoked (bilinear) and continuous (linear) sources mixed by the same spatial matrix A](pic/composite_model.png)
 
+🐍 **Python version:** [`cajd`](https://github.com/lkorczowski/composite-joint-diagonalization), with scikit-learn / MNE / MOABB compatible estimators.
+
 📘 **New here? Start with the [step-by-step tutorial](TUTORIAL.md).** It explains every step of the simulation script and shows the expected figures, so you can follow it without MATLAB.
 
 **Keywords:** EEG · ERP · event-related potentials · P300 · brain-computer interface (BCI) · blind source separation (BSS) · approximate joint diagonalization (AJD) · bilinear / spatio-temporal model · tensor decomposition · single-trial ERP estimation · denoising
